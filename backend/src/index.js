@@ -47,6 +47,8 @@ const PORT = process.env.PORT || 4000;
 app.use("/api/auth", authRoutes);
 
 // Outras rotas (ex: /api/transactions, /api/users) podem ser registadas aqui
+const accountRoutes = require("./routes/accounts");
+app.use("/api/accounts", accountRoutes);
 
 // Arranca o servidor e fica à escuta de pedidos nessa porta
 app.listen(PORT, () => {
