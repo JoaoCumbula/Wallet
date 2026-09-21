@@ -1,6 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const pool = require("../db/pool");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
@@ -68,5 +69,41 @@ router.post("/register", async (req, res) => {
     client.release();
   }
 });
+
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "email e password são obrigatórios" });
+  }
+
+  try {
+    const result = await pool.query("SELECT id, full_name, email, password_hash FROM users WHERE email = $1", [email]);
+    const user = result.rows[0];
+    
+     // Nota de segurança: respondemos SEMPRE com a mesma mensagem genérica
+    // "Credenciais inválidas", quer o email não exista quer a password
+    // esteja errada. Se disséssemos "email não encontrado" vs "password errada",
+    // estaríamos a confirmar a um atacante quais emails existem no sistema.
+    if (!user) {
+      return res.status(401).json({ error: "Credenciais inválidas" });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password_hash);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Credenciais inválidas" });
+    }
+
+    // Gera o token: payload com userId, assinado com o segredo,
+    // expira em 1h (depois disso o utilizador tem de fazer login outra vez)
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+    return res.json({ token, user: { id: user.id, fullName: user.full_name, email: user.email } });
+    } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao autenticar utilizador" });
+  }
+});    
+
 
 module.exports = router;
