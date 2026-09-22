@@ -96,14 +96,26 @@ router.post("/login", async (req, res) => {
 
     // Gera o token: payload com userId, assinado com o segredo,
     // expira em 1h (depois disso o utilizador tem de fazer login outra vez)
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: "8h" });
 
-    return res.json({ token, user: { id: user.id, fullName: user.full_name, email: user.email } });
-    } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro ao autenticar utilizador" });
-  }
-});    
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production", // exige HTTPS só em produção
+          sameSite: "lax", // mitiga CSRF; "lax" é suficiente para um MVP
+          maxAge: 8 * 60 * 60 * 1000, // 8h em milissegundos
+        });
 
+        return res.json({ user: { id: user.id, fullName: user.full_name, email: user.email } });
+        } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Erro ao autenticar utilizador" });
+      }
+});
+
+router.post("/logout", (req, res) => {
+  // Para "deslogar", basta remover o cookie do token no browser
+  res.clearCookie("token");
+  return res.json({ message: "Logout bem-sucedido" });
+});
 
 module.exports = router;

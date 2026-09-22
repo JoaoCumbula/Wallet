@@ -14,7 +14,7 @@ const cors = require("cors");
 const app = express();
 
 // Ativa CORS para todos os pedidos
-app.use(cors());
+app.use(cors({origin: "http://localhost:5173", credentials: true})); // Permite cookies que sejam enviados/recebidos // a origem exata do frontend, não "*"
 
 // Faz parsing automático de bodies em JSON, disponíveis em req.body
 app.use(express.json());
@@ -45,6 +45,9 @@ const PORT = process.env.PORT || 4000;
 
 // Regista as rotas de autenticação sob o prefixo /api/auth
 app.use("/api/auth", authRoutes);
+
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
 
 // Outras rotas (ex: /api/transactions, /api/users) podem ser registadas aqui
 const accountRoutes = require("./routes/accounts");
