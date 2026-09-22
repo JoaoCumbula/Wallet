@@ -50,7 +50,21 @@ app.use("/api/auth", authRoutes);
 const accountRoutes = require("./routes/accounts");
 app.use("/api/accounts", accountRoutes);
 
+const transactionRoutes = require("./routes/transactions");
+app.use("/api/transactions", transactionRoutes);
+
+// Middleware de tratamento de erros — captura erros não tratados
+// e devolve uma resposta genérica ao cliente, evitando crash da app
+app.use((err, req, res, next) => {
+  console.error("Erro não tratado:", err);
+  res.status(500).json({ error: "Erro interno do servidor" });
+});
+
 // Arranca o servidor e fica à escuta de pedidos nessa porta
+if (require.main === module) {
 app.listen(PORT, () => {
   console.log(`API a correr em http://localhost:${PORT}`);
 });
+}
+
+module.exports = app; // Exporta a app para testes ou uso em outros módulos
