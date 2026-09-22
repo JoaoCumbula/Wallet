@@ -1,14 +1,13 @@
 const jwt = require("jsonwebtoken");
 
 function authMiddleware(req, res, next) {
-    // O token vem no cabeçalho, no formato: "Authorization: Bearer eyJ..."
-  const authHeader = req.headers.authorization;
+    // Antes líamos req.headers.authorization; agora o cookie-parser
+  // já nos dá isto pronto em req.cookies
+  const token = req.cookies.token;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!token) {
     return res.status(401).json({ error: "Token de autenticação não fornecido" });
   }
-
-  const token = authHeader.split(" ")[1]; // Espera-se o formato "Bearer <token>"
 
   try {
      // jwt.verify confirma a assinatura com o mesmo JWT_SECRET
