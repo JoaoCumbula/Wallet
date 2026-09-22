@@ -1,0 +1,34 @@
+name: CI
+
+# Define QUANDO este workflow corre
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      # Descarrega o teu código para a máquina virtual do GitHub
+      - uses: actions/checkout@v4
+
+      # Instala o Node.js na versão que escolheres
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Rodar testes
+        run: npm test
+        env:
+          JWT_SECRET: ci-test-secret
