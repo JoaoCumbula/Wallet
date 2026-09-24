@@ -1,19 +1,40 @@
-import { api } from "./api/client";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./api/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import Transfer from "./pages/Transfer";
 
 export default function App() {
-  async function testLogin() {
-    try {
-      const data = await api.login({ email: "joao@teste.com", password: "senha123" });
-      console.log("Login funcionou:", data);
-    } catch (err) {
-      console.error("Erro no login:", err.message);
-    }
-  }
-
   return (
-    <div>
-      <h1>MVP Wallet</h1>
-      <button onClick={testLogin}>Testar login</button>
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Redireciona a raiz "/" para o dashboard */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transfer"
+            element={
+              <ProtectedRoute>
+                <Transfer />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
